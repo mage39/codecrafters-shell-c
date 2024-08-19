@@ -12,7 +12,7 @@ int main() {
 	for (int i = 0; i != ' ' && i != NULL && i < 100; i++) {
 		print("%c", input[i]);
 	}
-	print(": command not found\n");
+	printf(": command not found\n");
 
 	return 0;
 }
