@@ -9,8 +9,8 @@ int main() {
 	char input[100];
 	fgets(input, 100, stdin);
 
-	for (int i = 0; i != ' ' && i != NULL && i < 100; i++) {
-		print("%c", input[i]);
+	for (int i = 0; i != ' ' && i != '\0' && i < 100; i++) {
+		printf("%c", input[i]);
 	}
 	printf(": command not found\n");
 
