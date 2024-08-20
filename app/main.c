@@ -12,12 +12,19 @@ int main() {
 		char input[100];
 		fgets(input, 100, stdin);
 
-		int cmdLen = 0;
+		int cmdLen = strlen("exit");
+		if (!strncmp(input, "exit", cmdLen)) {
+			int ret = atoi(input + cmdLen);
+			return ret;
+		}
+
+		cmdLen = 0;
 		for (; cmdLen < 100; cmdLen++) {
 			switch (input[cmdLen]) {
 				case 'a'...'z':
 				case 'A'...'Z':
 				case '0'...'9':
+				case '-'...'.':
 				case '_':
 					break;
 				default:
