@@ -12,10 +12,17 @@ int main() {
 		char input[100];
 		fgets(input, 100, stdin);
 
-		int cmdLen = strlen("exit");
-		if (!strncmp(input, "exit", cmdLen)) {
+		char cmd[100] = "exit";
+		int cmdLen = strlen(cmd);
+		if (!strncmp(input, cmd, cmdLen)) {
 			int ret = atoi(input + cmdLen);
 			return ret;
+		}
+		strncpy(cmd, "echo", 100);
+		cmdLen = strlen(cmd);
+		if (!strncmp(input, cmd, cmdLen)) {
+			printf("%s", input + cmdLen + 1);
+			continue;
 		}
 
 		cmdLen = 0;
@@ -32,7 +39,6 @@ int main() {
 			}
 		}
 cmdEnd:;
-		char cmd[100] = {0};
 		strncpy(cmd, input, cmdLen);
 		printf("%s: command not found\n", cmd);
 	}
