@@ -4,14 +4,12 @@
 
 int main() {
 	while (1) {
-		// Uncomment this block to pass the first stage
 		printf("$ ");
 		fflush(stdout);
-
-		// Wait for user input
 		char input[100];
 		fgets(input, 100, stdin);
 
+		if (!strcmp(input, "exit\n")) return 0;
 		char cmd[100] = "exit ";
 		int cmdLen = strlen(cmd);
 		if (!strncmp(input, cmd, cmdLen)) {
@@ -24,6 +22,7 @@ int main() {
 			printf("%s", input + cmdLen);
 			continue;
 		}
+		if (!strcmp(input, "type\n")) continue;
 		strncpy(cmd, "type ", 100);
 		cmdLen = strlen(cmd);
 		if (!strncmp(input, cmd, cmdLen)) {
