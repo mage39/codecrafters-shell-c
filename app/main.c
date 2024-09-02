@@ -51,7 +51,9 @@ int main() {
 			}
 typeEnd:
 			cmdLen = strlen(cmd);
+			strncpy(cmd, "\0", cmdLen);
 			strncpy(cmd, input + cmdLen, typeLen);
+			if (!cmd[0]) continue;
 			printf("%s: not found\n", cmd);
 			continue;
 		}
