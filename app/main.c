@@ -1,8 +1,40 @@
+#include <dirent.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-int main() {
+static inline int isValidChar (char a) {
+	switch (a) {
+		case 'a'...'z':
+		case 'A'...'Z':
+		case '0'...'9':
+		case '-'...'.':
+		case '_':
+			return 1;
+		default:
+			return 0;
+	}
+}
+
+static const char* typeFileSearch(const char* cmd) {
+	const char* pathEnv = getenv("PATH");
+	int pathEndPtr = 0, pathBeginPtr = 0;
+	while (pathEndPtr < strlen(pathEnv)) {
+		for (; pathEndPtr < strlen(pathEnv); pathEndPtr++) {
+			if (pathEnv[i] == ':') break;
+		}
+		char path[100] = {0};
+		strncpy(path, pathEnv + pathBeginPtr, pathBeginPtr - pathEndPtr);
+		DIR* pathDir = opendir(path);
+		struct dirent* temp;
+		while(temp = readdir(pathDir)) {
+			// compare this shit
+			// im going to bed
+		}
+	}
+}
+
+int main () {
 	while (1) {
 		printf("$ ");
 		fflush(stdout);
@@ -27,8 +59,9 @@ int main() {
 		cmdLen = strlen(cmd);
 		if (!strncmp(input, cmd, cmdLen)) {
 			int typeLen;
-			char builtins[][25] = {"exit", "echo", "type"};
-			for (int i = 0; i < 3; i++) {
+			#define CMD_COUNT 3
+			char builtins[CMD_COUNT][8] = {"exit", "echo", "type"};
+			for (int i = 0; i < CMD_COUNT; i++) {
 				typeLen = strlen(builtins[i]);
 				if (!strncmp(input + cmdLen, builtins[i], typeLen)) {
 					printf("%s is a shell builtin\n", builtins[i]);
@@ -37,41 +70,28 @@ int main() {
 			}
 			typeLen = 0;
 			for (; cmdLen < 100; cmdLen++) {
-				switch (input[cmdLen]) {
-					case 'a'...'z':
-					case 'A'...'Z':
-					case '0'...'9':
-					case '-'...'.':
-					case '_':
-						typeLen++;
-						break;
-					default:
-						goto typeEnd;
-				}
+				if (isValidChar(input[cmdLen])) typeLen++;
+				else break;
 			}
-typeEnd:
 			cmdLen = strlen(cmd);
 			strncpy(cmd, "\0", cmdLen);
 			strncpy(cmd, input + cmdLen, typeLen);
 			if (!cmd[0]) continue;
+			char* cmdLocation = typeFileSearch(cmd);
+			if (cmdLocation) {
+				printf("%s is %s", cmd, cmdLocation);
+				free(cmdLocation);
+				continue;
+			}
 			printf("%s: not found\n", cmd);
 			continue;
 		}
 
 		cmdLen = 0;
 		for (; cmdLen < 100; cmdLen++) {
-			switch (input[cmdLen]) {
-				case 'a'...'z':
-				case 'A'...'Z':
-				case '0'...'9':
-				case '-'...'.':
-				case '_':
-					break;
-				default:
-					goto cmdEnd;
-			}
+			if (isValidChar(input[cmdLen]));
+			else break;
 		}
-cmdEnd:;
 		strncpy(cmd, input, cmdLen);
 		printf("%s: command not found\n", cmd);
 whileContinue:;
