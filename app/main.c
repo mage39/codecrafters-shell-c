@@ -115,10 +115,10 @@ int main () {
 		}
 		char* argv[LEN];
 		int i = 0;
-		for (char* t = 1; t && i < LEN; i++) argv[i] = strsep(&input, " ");
+		for (char* t = (char*)1; t && i < LEN; i++) argv[i] = strsep(&input, " ");
 		argv[i] = (char*)0;
-		execve(prog, argv, (char*)0);
-		free(prog)
+		execve(prog, argv, (char**)0);
+		free(prog);
 	}
 
 	return 0;
