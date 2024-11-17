@@ -1,4 +1,5 @@
 #include <dirent.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -6,18 +7,9 @@
 
 #define LEN 100
 
-static inline int isValidChar (char a) {
-	switch (a) {
-		case 'a'...'z':
-		case 'A'...'Z':
-		case '0'...'9':
-		case '-'...'.':
-		case '_':
-			return 1;
-		default:
-			return 0;
-	}
-}
+const char* validChars = "abcdefghijklmnopqrstuvwxyz"
+						 "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+						 "0123456789-_";
 
 static char* which (const char* cmd) {
 	const char* pathEnv = getenv("PATH");
@@ -25,17 +17,15 @@ static char* which (const char* cmd) {
 	size_t pathEndPtr = 0, pathBeginPtr = 0;
 	char* ret = malloc(LEN);
 	while (pathEndPtr < pathEnvLen) {
-		for (; pathEndPtr < pathEnvLen; pathEndPtr++) {
-			if (pathEnv[pathEndPtr] == ':') break;
-		}
+		pathEndPtr += strcspn(pathEnv + pathBeginPtr, ":");
 		strncpy(ret, pathEnv + pathBeginPtr, pathEndPtr - pathBeginPtr);
 		ret[pathEndPtr - pathBeginPtr] = 0;
 		DIR* pathDir = opendir(ret);
 		if (!pathDir) {
-			/*
+			/* debug printing
 			if (errno == EACCES) printf("permission denied for directory %s\n", ret);
 			if (errno == EMFILE) printf("too many directories open\n");
-			if (errno == ENOENT || errno == ENOTDIR) printf("%s: file not found or is not a directory\n", ret);
+			if (errno == ENOENT || errno == ENOTDIR) printf("%s: directory not found or is not a directory\n", ret);
 			if (errno == ENOMEM) printf("OOM\n");
 			printf("WARNING: if %s exists in %s, it will not be found\n", cmd, ret);
 			*/
@@ -45,6 +35,7 @@ static char* which (const char* cmd) {
 		}
 		for (struct dirent* temp; temp = readdir(pathDir);) {
 			if (!strcmp(temp->d_name, cmd)) {
+				closedir(pathDir);
 				strcat(ret, "/");
 				strcat(ret, cmd);
 				return ret;
@@ -58,8 +49,10 @@ static char* which (const char* cmd) {
 	return 0;
 }
 
-static void type (char* input, char* cmd, int cmdLen) {
-	size_t typeLen;
+static void execute (const char* input, const char* prog) {
+}
+
+static void type (const char* input, char* cmd, int cmdLen) {
 	#define CMD_COUNT 3
 	char builtins[CMD_COUNT][8] = {"exit", "echo", "type"};
 	for (int i = 0; i < CMD_COUNT; i++) {
@@ -68,13 +61,9 @@ static void type (char* input, char* cmd, int cmdLen) {
 			return;
 		}
 	}
-	for (typeLen = 0; cmdLen < LEN; cmdLen++) {
-		if (isValidChar(input[cmdLen])) typeLen++;
-		else break;
-	}
-	cmdLen = strlen(cmd);
-	memset(cmd, 0, cmdLen);
+	size_t typeLen = strspn(input + cmdLen, validChars);
 	strncpy(cmd, input + cmdLen, typeLen);
+	cmd[typeLen] = 0;
 	if (!cmd[0]) return; // error: no argument given
 	char* cmdLocation = which(cmd);
 	if (cmdLocation) {
@@ -95,7 +84,7 @@ int main () {
 		fgets(input, LEN, stdin);
 
 		if (!strcmp(input, "exit\n")) return 0;
-		char cmd[LEN] = "exit ";
+		char cmd[LEN] = {"exit "};
 		size_t cmdLen = strlen(cmd);
 		if (!strncmp(input, cmd, cmdLen)) {
 			int ret = atoi(input + cmdLen);
@@ -115,13 +104,21 @@ int main () {
 			type(input, cmd, cmdLen);
 			continue;
 		}
-		for (cmdLen = 0; cmdLen < LEN; cmdLen++) {
-			if (isValidChar(input[cmdLen]));
-			else break;
-		}
+		cmdLen = strspn(input, validChars);
 		strncpy(cmd, input, cmdLen);
 		cmd[cmdLen] = 0;
-		printf("%s: command not found\n", cmd);
+		char* prog = which(cmd);
+		if (!prog) {
+			printf("%s: command not found\n", cmd);
+			free(prog);
+			continue;
+		}
+		char* argv[LEN];
+		int i = 0;
+		for (char* t = 1; t && i < LEN; i++) argv[i] = strsep(&input, " ");
+		argv[i] = (char*)0;
+		execve(prog, argv, (char*)0);
+		free(prog)
 	}
 
 	return 0;
