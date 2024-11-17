@@ -115,7 +115,7 @@ int main () {
 		}
 		char* argv[LEN];
 		int i = 0;
-		for (char* t = (char*)1; t && i < LEN; i++) argv[i] = strsep(&input, " ");
+		for (char* t = (char*)1; t && i < LEN; i++) argv[i] = strsep(&(char*)input, " ");
 		argv[i] = (char*)0;
 		execve(prog, argv, (char**)0);
 		free(prog);
