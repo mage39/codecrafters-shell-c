@@ -47,7 +47,6 @@ static char* which (const char* cmd) {
 			if (!strcmp(temp->d_name, cmd)) {
 				strcat(ret, "/");
 				strcat(ret, cmd);
-				strcat(ret, "\n");
 				return ret;
 			}
 		}
@@ -64,7 +63,7 @@ static void type (char* input, char* cmd, int cmdLen) {
 	#define CMD_COUNT 3
 	char builtins[CMD_COUNT][8] = {"exit", "echo", "type"};
 	for (int i = 0; i < CMD_COUNT; i++) {
-		if (!strcmp(input + cmdLen, builtins[i])) {
+		if (!strncmp(input + cmdLen, builtins[i], strlen(builtins[i]))) {
 			printf("%s is a shell builtin\n", builtins[i]);
 			return;
 		}
@@ -79,7 +78,7 @@ static void type (char* input, char* cmd, int cmdLen) {
 	if (!cmd[0]) return; // error: no argument given
 	char* cmdLocation = which(cmd);
 	if (cmdLocation) {
-		printf("%s is %s", cmd, cmdLocation);
+		printf("%s is %s\n", cmd, cmdLocation);
 		free(cmdLocation);
 		return;
 	}
