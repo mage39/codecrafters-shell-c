@@ -37,7 +37,7 @@ static char* which (const char* cmd) {
 			if (errno == ENOENT || errno == ENOTDIR) printf("%s: file not found or is not a directory\n", ret);
 			if (errno == ENOMEM) printf("OOM\n");
 			printf("WARNING: if %s exists in %s, it will not be found\n", cmd, ret);
-			pathEndPtr += 2;
+			pathEndPtr++;
 			pathBeginPtr = pathEndPtr;
 			continue;
 		}
@@ -49,7 +49,7 @@ static char* which (const char* cmd) {
 			}
 		}
 		closedir(pathDir);
-		pathEndPtr += 2;
+		pathEndPtr++;
 		pathBeginPtr = pathEndPtr;
 	}
 	free(ret);
