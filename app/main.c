@@ -32,17 +32,20 @@ static char* which (const char* cmd) {
 		ret[pathEndPtr - pathBeginPtr] = 0;
 		DIR* pathDir = opendir(ret);
 		if (!pathDir) {
+			/*
 			if (errno == EACCES) printf("permission denied for directory %s\n", ret);
 			if (errno == EMFILE) printf("too many directories open\n");
 			if (errno == ENOENT || errno == ENOTDIR) printf("%s: file not found or is not a directory\n", ret);
 			if (errno == ENOMEM) printf("OOM\n");
 			printf("WARNING: if %s exists in %s, it will not be found\n", cmd, ret);
+			*/
 			pathEndPtr++;
 			pathBeginPtr = pathEndPtr;
 			continue;
 		}
 		for (struct dirent* temp; temp = readdir(pathDir);) {
 			if (!strcmp(temp->d_name, cmd)) {
+				strcat(ret, "/");
 				strcat(ret, cmd);
 				strcat(ret, "\n");
 				return ret;
