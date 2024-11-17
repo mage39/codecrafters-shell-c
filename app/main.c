@@ -32,11 +32,10 @@ static char* which (const char* cmd) {
 		ret[pathEndPtr - pathBeginPtr] = 0;
 		DIR* pathDir = opendir(ret);
 		if (!pathDir) {
-			int err = errno();
-			if (err == EACCES) printf("permission denied for directory %s\n", ret);
-			if (err == EMFILE) printf("too many directories open\n");
-			if (err == ENOENT || err == ENOTDIR) printf("%s: file not found or is not a directory\n", ret);
-			if (err == ENOMEM) printf("OOM\n");
+			if (errno == EACCES) printf("permission denied for directory %s\n", ret);
+			if (errno == EMFILE) printf("too many directories open\n");
+			if (errno == ENOENT || errno == ENOTDIR) printf("%s: file not found or is not a directory\n", ret);
+			if (errno == ENOMEM) printf("OOM\n");
 			printf("WARNING: if %s exists in %s, it will not be found\n", cmd, ret);
 			pathEndPtr += 2;
 			pathBeginPtr = pathEndPtr;
