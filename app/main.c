@@ -44,6 +44,7 @@ static char* which (const char* cmd) {
 				return ret;
 			}
 		}
+		closedir(pathDir);
 		pathEndPtr += 2;
 		pathBeginPtr = pathEndPtr;
 	}
