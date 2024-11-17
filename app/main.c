@@ -119,6 +119,7 @@ int main () {
 		argv[i] = (char*)0;
 		execve(prog, argv, (char**)0);
 		free(prog);
+		printf("\n");
 	}
 
 	return 0;
