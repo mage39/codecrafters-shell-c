@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#define LEN 100
+
 static inline int isValidChar (char a) {
 	switch (a) {
 		case 'a'...'z':
@@ -16,85 +18,103 @@ static inline int isValidChar (char a) {
 	}
 }
 
-static const char* typeFileSearch(const char* cmd) {
+static char* which (const char* cmd) {
 	const char* pathEnv = getenv("PATH");
-	int pathEndPtr = 0, pathBeginPtr = 0;
-	while (pathEndPtr < strlen(pathEnv)) {
-		for (; pathEndPtr < strlen(pathEnv); pathEndPtr++) {
-			if (pathEnv[i] == ':') break;
+	size_t pathEnvLen = strlen(pathEnv);
+	size_t pathEndPtr = 0, pathBeginPtr = 0;
+	char* ret = malloc(LEN);
+	while (pathEndPtr < pathEnvLen) {
+		for (; pathEndPtr < pathEnvLen; pathEndPtr++) {
+			if (pathEnv[pathEndPtr] == ':') break;
 		}
-		char path[100] = {0};
-		strncpy(path, pathEnv + pathBeginPtr, pathBeginPtr - pathEndPtr);
-		DIR* pathDir = opendir(path);
-		struct dirent* temp;
-		while(temp = readdir(pathDir)) {
-			// compare this shit
-			// im going to bed
+		strncpy(ret, pathEnv + pathBeginPtr, pathEndPtr - pathBeginPtr);
+		ret[pathEndPtr - pathBeginPtr] = 0;
+		DIR* pathDir = opendir(ret);
+		if (!pathDir) {
+			printf("permission denied for file %s\n", ret);
+			printf("WARNING: if %s exists in %s, it will not be found\n", cmd, ret);
+			pathEndPtr += 2;
+			pathBeginPtr = pathEndPtr;
+			continue;
+		}
+		for (struct dirent* temp; temp = readdir(pathDir);) {
+			if (!strcmp(temp->d_name, cmd)) {
+				strcat(ret, cmd);
+				strcat(ret, "\n");
+				return ret;
+			}
+		}
+		pathEndPtr += 2;
+		pathBeginPtr = pathEndPtr;
+	}
+	free(ret);
+	return 0;
+}
+
+static void type (char* input, char* cmd, int cmdLen) {
+	size_t typeLen;
+	#define CMD_COUNT 3
+	char builtins[CMD_COUNT][8] = {"exit", "echo", "type"};
+	for (int i = 0; i < CMD_COUNT; i++) {
+		if (!strcmp(input + cmdLen, builtins[i])) {
+			printf("%s is a shell builtin\n", builtins[i]);
+			return;
 		}
 	}
+	for (typeLen = 0; cmdLen < LEN; cmdLen++) {
+		if (isValidChar(input[cmdLen])) typeLen++;
+		else break;
+	}
+	cmdLen = strlen(cmd);
+	memset(cmd, 0, cmdLen);
+	strncpy(cmd, input + cmdLen, typeLen);
+	if (!cmd[0]) return; // error: no argument given
+	char* cmdLocation = which(cmd);
+	if (cmdLocation) {
+		printf("%s is %s", cmd, cmdLocation);
+		free(cmdLocation);
+		return;
+	}
+	printf("%s: not found\n", cmd);
+	return;
+	#undef CMD_COUNT
 }
 
 int main () {
 	while (1) {
 		printf("$ ");
 		fflush(stdout);
-		char input[100];
-		fgets(input, 100, stdin);
+		char input[LEN];
+		fgets(input, LEN, stdin);
 
 		if (!strcmp(input, "exit\n")) return 0;
-		char cmd[100] = "exit ";
-		int cmdLen = strlen(cmd);
+		char cmd[LEN] = "exit ";
+		size_t cmdLen = strlen(cmd);
 		if (!strncmp(input, cmd, cmdLen)) {
 			int ret = atoi(input + cmdLen);
 			return ret;
 		}
-		strncpy(cmd, "echo ", 100);
+		if (!strcmp(input, "echo\n")) continue;
+		strncpy(cmd, "echo ", LEN);
 		cmdLen = strlen(cmd);
 		if (!strncmp(input, cmd, cmdLen)) {
 			printf("%s", input + cmdLen);
 			continue;
 		}
 		if (!strcmp(input, "type\n")) continue;
-		strncpy(cmd, "type ", 100);
+		strncpy(cmd, "type ", LEN);
 		cmdLen = strlen(cmd);
 		if (!strncmp(input, cmd, cmdLen)) {
-			int typeLen;
-			#define CMD_COUNT 3
-			char builtins[CMD_COUNT][8] = {"exit", "echo", "type"};
-			for (int i = 0; i < CMD_COUNT; i++) {
-				typeLen = strlen(builtins[i]);
-				if (!strncmp(input + cmdLen, builtins[i], typeLen)) {
-					printf("%s is a shell builtin\n", builtins[i]);
-					goto whileContinue;
-				}
-			}
-			typeLen = 0;
-			for (; cmdLen < 100; cmdLen++) {
-				if (isValidChar(input[cmdLen])) typeLen++;
-				else break;
-			}
-			cmdLen = strlen(cmd);
-			strncpy(cmd, "\0", cmdLen);
-			strncpy(cmd, input + cmdLen, typeLen);
-			if (!cmd[0]) continue;
-			char* cmdLocation = typeFileSearch(cmd);
-			if (cmdLocation) {
-				printf("%s is %s", cmd, cmdLocation);
-				free(cmdLocation);
-				continue;
-			}
-			printf("%s: not found\n", cmd);
+			type(input, cmd, cmdLen);
 			continue;
 		}
-
-		cmdLen = 0;
-		for (; cmdLen < 100; cmdLen++) {
+		for (cmdLen = 0; cmdLen < LEN; cmdLen++) {
 			if (isValidChar(input[cmdLen]));
 			else break;
 		}
 		strncpy(cmd, input, cmdLen);
+		cmd[cmdLen] = 0;
 		printf("%s: command not found\n", cmd);
-whileContinue:;
 	}
 
 	return 0;
