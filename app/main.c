@@ -56,8 +56,8 @@ static char* which (const char* cmd) {
 }
 
 static void type (const char* input, char* cmd, int cmdLen) {
-	#define CMD_COUNT 3
-	char builtins[CMD_COUNT][8] = {"exit", "echo", "type"};
+	#define CMD_COUNT 4
+	char builtins[CMD_COUNT][8] = {"exit", "echo", "type", "pwd"};
 	for (int i = 0; i < CMD_COUNT; i++) {
 		if (!strncmp(input + cmdLen, builtins[i], strlen(builtins[i]))) {
 			printf("%s is a shell builtin\n", builtins[i]);
@@ -88,8 +88,6 @@ static void execute (char* input, const char* prog) {
 	if (i > 1) argv[i - 2] = (char*)0;
 	pid_t child = fork();
 	waitpid(child, NULL, 0);
-	// so IDK whats going on here, but apparently theres a printf thats getting
-	// split into 2 lines or something, and that shouldnt be happening
 	if (!child) execve(prog, argv, (char**)0);
 }
 
@@ -119,6 +117,12 @@ int main () {
 		cmdLen = strlen(cmd);
 		if (!strncmp(input, cmd, cmdLen)) {
 			type(input, cmd, cmdLen);
+			continue;
+		}
+		char pwd[LEN];
+		getcwd(pwd, sizeof(pwd));
+		if (!strcmp(input, "pwd\n")) {
+			printf("%s\n", pwd);
 			continue;
 		}
 		cmdLen = strspn(input, validChars);
