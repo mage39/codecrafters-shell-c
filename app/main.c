@@ -126,7 +126,7 @@ int main () {
 			continue;
 		}
 		if (!strcmp(input, "cd\n") || !strcmp(input, "cd ~\n")) {
-			chdir("~/");
+			chdir(getenv("HOME"));
 			continue;
 		}
 		strncpy(cmd, "cd ", LEN);
