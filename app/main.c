@@ -119,13 +119,13 @@ int main () {
 			type(input, cmd, cmdLen);
 			continue;
 		}
-		char pwd[LEN];
-		getcwd(pwd, sizeof(pwd));
 		if (!strcmp(input, "pwd\n")) {
+			char pwd[LEN];
+			getcwd(pwd, sizeof(pwd));
 			printf("%s\n", pwd);
 			continue;
 		}
-		if (!strcmp(input, "cd\n")) {
+		if (!strcmp(input, "cd\n") || !strcmp(input, "cd ~\n")) {
 			chdir("~/");
 			continue;
 		}
