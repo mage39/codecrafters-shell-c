@@ -85,7 +85,7 @@ static void execute (char* input, const char* prog) {
 		t = strsep((char**)&input, " \n");
 		argv[i] = t;
 	}
-	argv[i] = (char*)0;
+	if (i > 1) argv[i - 2] = (char*)0;
 	pid_t child = fork();
 	waitpid(child, NULL, 0);
 	// so IDK whats going on here, but apparently theres a printf thats getting
