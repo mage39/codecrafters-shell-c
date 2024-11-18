@@ -56,8 +56,8 @@ static char* which (const char* cmd) {
 }
 
 static void type (const char* input, char* cmd, int cmdLen) {
-	#define CMD_COUNT 4
-	char builtins[CMD_COUNT][8] = {"exit", "echo", "type", "pwd"};
+	#define CMD_COUNT 5
+	char builtins[CMD_COUNT][8] = {"exit", "echo", "type", "pwd", "cd"};
 	for (int i = 0; i < CMD_COUNT; i++) {
 		if (!strncmp(input + cmdLen, builtins[i], strlen(builtins[i]))) {
 			printf("%s is a shell builtin\n", builtins[i]);
@@ -123,6 +123,23 @@ int main () {
 		getcwd(pwd, sizeof(pwd));
 		if (!strcmp(input, "pwd\n")) {
 			printf("%s\n", pwd);
+			continue;
+		}
+		if (!strcmp(input, "cd\n")) {
+			chdir("~/");
+			continue;
+		}
+		strncpy(cmd, "cd ", LEN);
+		cmdLen = strlen(cmd);
+		if (!strncmp(input, cmd, cmdLen)) {
+			size_t pathLen = strcspn(input + cmdLen, "\n");
+			char* path = strndup(input + cmdLen, pathLen);
+			if (!path) {
+				perror("malloc failed: in function main");
+				exit(1);
+			}
+			if (chdir(path)) printf("cd: %s: No such file or directory\n", path);
+			free(path);
 			continue;
 		}
 		cmdLen = strspn(input, validChars);
