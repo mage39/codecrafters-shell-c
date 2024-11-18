@@ -82,14 +82,14 @@ static void execute (char* input, const char* prog) {
 	char* argv[LEN];
 	int i = 0;
 	for (char* t = (char*)1; t && i < LEN; i++) {
-		t = strsep((char**)&input, " ");
+		t = strsep((char**)&input, " \n");
 		argv[i] = t;
 	}
 	argv[i] = (char*)0;
-	// i need to run this in a child process somehow
-	// fork it IG? but how
 	pid_t child = fork();
 	waitpid(child, NULL, 0);
+	// so IDK whats going on here, but apparently theres a printf thats getting
+	// split into 2 lines or something, and that shouldnt be happening
 	if (!child) execve(prog, argv, (char**)0);
 }
 
