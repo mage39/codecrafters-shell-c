@@ -1,9 +1,11 @@
+#include <sys/wait.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
+// #include <error.h>
 
 #define LEN 100
 
@@ -16,6 +18,10 @@ static char* which (const char* cmd) {
 	size_t pathEnvLen = strlen(pathEnv);
 	size_t pathEndPtr = 0, pathBeginPtr = 0;
 	char* ret = malloc(LEN);
+	if (!ret) {
+		perror("malloc failed: in function which");
+		exit(1);
+	}
 	while (pathEndPtr < pathEnvLen) {
 		pathEndPtr += strcspn(pathEnv + pathBeginPtr, ":");
 		strncpy(ret, pathEnv + pathBeginPtr, pathEndPtr - pathBeginPtr);
@@ -33,7 +39,7 @@ static char* which (const char* cmd) {
 			pathBeginPtr = pathEndPtr;
 			continue;
 		}
-		for (struct dirent* temp; temp = readdir(pathDir);) {
+		for (struct dirent* temp; (temp = readdir(pathDir));) {
 			if (!strcmp(temp->d_name, cmd)) {
 				closedir(pathDir);
 				strcat(ret, "/");
@@ -47,9 +53,6 @@ static char* which (const char* cmd) {
 	}
 	free(ret);
 	return 0;
-}
-
-static void execute (const char* input, const char* prog) {
 }
 
 static void type (const char* input, char* cmd, int cmdLen) {
@@ -72,8 +75,22 @@ static void type (const char* input, char* cmd, int cmdLen) {
 		return;
 	}
 	printf("%s: not found\n", cmd);
-	return;
 	#undef CMD_COUNT
+}
+
+static void execute (char* input, const char* prog) {
+	char* argv[LEN];
+	int i = 0;
+	for (char* t = (char*)1; t && i < LEN; i++) {
+		t = strsep((char**)&input, " ");
+		argv[i] = t;
+	}
+	argv[i] = (char*)0;
+	// i need to run this in a child process somehow
+	// fork it IG? but how
+	pid_t child = fork();
+	waitpid(child, NULL, 0);
+	if (!child) execve(prog, argv, (char**)0);
 }
 
 int main () {
@@ -113,13 +130,8 @@ int main () {
 			free(prog);
 			continue;
 		}
-		char* argv[LEN];
-		int i = 0;
-		for (char* t = (char*)1; t && i < LEN; i++) argv[i] = strsep(&(char*)input, " ");
-		argv[i] = (char*)0;
-		execve(prog, argv, (char**)0);
+		execute(input, prog);
 		free(prog);
-		printf("\n");
 	}
 
 	return 0;
