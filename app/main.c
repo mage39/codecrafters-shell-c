@@ -15,7 +15,7 @@ static const char* validChars = "abcdefghijklmnopqrstuvwxyz"
 
 static char* which (const char* cmd) {
 	const char* pathEnv = getenv("PATH");
-	char* freePath = strdup(pathEnv), *path = freePath;
+	char* path = pathEnv;
 	char* ret = malloc(LEN);
 	if (!ret) {
 		perror("malloc failed: in function which");
@@ -28,13 +28,11 @@ static char* which (const char* cmd) {
 			if (!strcmp(t->d_name, cmd)) {
 				closedir(pathDir);
 				snprintf(ret, LEN, "%s/%s", tok, cmd);
-				free(freePath);
 				return ret;
 			}
 		}
 		closedir(pathDir);
 	}
-	free(freePath);
 	free(ret);
 	return 0;
 }
