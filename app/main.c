@@ -20,8 +20,7 @@ static char* which (const char* cmd) {
 		perror("malloc failed: in function which");
 		exit(1);
 	}
-	for (char* tok = (char*)1; tok;) {
-		tok = strsep(&pathEnv, ":");
+	for (char* tok = (char*)1; (tok = strsep(&pathEnv, ":"));) {
 		DIR* pathDir = opendir(tok);
 		if (!pathDir) continue;
 		for (struct dirent* t; (t = readdir(pathDir));) {
