@@ -9,47 +9,29 @@
 
 #define LEN 100
 
-const char* validChars = "abcdefghijklmnopqrstuvwxyz"
-						 "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-						 "0123456789-_";
+static const char* validChars = "abcdefghijklmnopqrstuvwxyz"
+								"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+								"0123456789-_";
 
 static char* which (const char* cmd) {
-	const char* pathEnv = getenv("PATH");
-	size_t pathEnvLen = strlen(pathEnv);
-	size_t pathEndPtr = 0, pathBeginPtr = 0;
+	char* pathEnv = getenv("PATH");
 	char* ret = malloc(LEN);
 	if (!ret) {
 		perror("malloc failed: in function which");
 		exit(1);
 	}
-	while (pathEndPtr < pathEnvLen) {
-		pathEndPtr += strcspn(pathEnv + pathBeginPtr, ":");
-		strncpy(ret, pathEnv + pathBeginPtr, pathEndPtr - pathBeginPtr);
-		ret[pathEndPtr - pathBeginPtr] = 0;
-		DIR* pathDir = opendir(ret);
-		if (!pathDir) {
-			/* debug printing
-			if (errno == EACCES) printf("permission denied for directory %s\n", ret);
-			if (errno == EMFILE) printf("too many directories open\n");
-			if (errno == ENOENT || errno == ENOTDIR) printf("%s: directory not found or is not a directory\n", ret);
-			if (errno == ENOMEM) printf("OOM\n");
-			printf("WARNING: if %s exists in %s, it will not be found\n", cmd, ret);
-			*/
-			pathEndPtr++;
-			pathBeginPtr = pathEndPtr;
-			continue;
-		}
-		for (struct dirent* temp; (temp = readdir(pathDir));) {
-			if (!strcmp(temp->d_name, cmd)) {
+	for (char* tok = (char*)1; tok;) {
+		tok = strsep(&pathEnv, ":");
+		DIR* pathDir = opendir(tok);
+		if (!pathDir) continue;
+		for (struct dirent* t; (t = readdir(pathDir));) {
+			if (!strcmp(t->d_name, cmd)) {
 				closedir(pathDir);
-				strcat(ret, "/");
-				strcat(ret, cmd);
+				snprintf(ret, LEN, "%s/%s", tok, cmd);
 				return ret;
 			}
 		}
 		closedir(pathDir);
-		pathEndPtr++;
-		pathBeginPtr = pathEndPtr;
 	}
 	free(ret);
 	return 0;
