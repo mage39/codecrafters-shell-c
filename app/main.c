@@ -14,24 +14,27 @@ static const char* validChars = "abcdefghijklmnopqrstuvwxyz"
 								"0123456789-_";
 
 static char* which (const char* cmd) {
-	char* pathEnv = getenv("PATH");
+	const char* pathEnv = getenv("PATH");
+	char* freePath = strdup(pathEnv), *path = freePath;
 	char* ret = malloc(LEN);
 	if (!ret) {
 		perror("malloc failed: in function which");
 		exit(1);
 	}
-	for (char* tok = (char*)1; (tok = strsep(&pathEnv, ":"));) {
+	for (char* tok = (char*)1; (tok = strsep(&path, ":"));) {
 		DIR* pathDir = opendir(tok);
 		if (!pathDir) continue;
 		for (struct dirent* t; (t = readdir(pathDir));) {
 			if (!strcmp(t->d_name, cmd)) {
 				closedir(pathDir);
 				snprintf(ret, LEN, "%s/%s", tok, cmd);
+				free(freePath);
 				return ret;
 			}
 		}
 		closedir(pathDir);
 	}
+	free(freePath);
 	free(ret);
 	return 0;
 }
