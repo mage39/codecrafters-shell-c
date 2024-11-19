@@ -39,7 +39,7 @@ static char* which (const char* cmd) {
 	return 0;
 }
 
-static void type (const char* input, char* cmd, int cmdLen) {
+static void type (const char* input, char* cmd, size_t cmdLen) {
 	#define CMD_COUNT 5
 	char builtins[CMD_COUNT][8] = {"exit", "echo", "type", "pwd", "cd"};
 	for (int i = 0; i < CMD_COUNT; i++) {
@@ -60,6 +60,17 @@ static void type (const char* input, char* cmd, int cmdLen) {
 	}
 	printf("%s: not found\n", cmd);
 	#undef CMD_COUNT
+}
+
+static void cd (const char* input, size_t cmdLen) {
+	size_t pathLen = strcspn(input + cmdLen, "\n");
+	char* path = strndup(input + cmdLen, pathLen);
+	if (!path) {
+		perror("malloc failed: in function main");
+		exit(1);
+	}
+	if (chdir(path)) printf("cd: %s: No such file or directory\n", path);
+	free(path);
 }
 
 static void execute (char* input, const char* prog) {
@@ -116,14 +127,7 @@ int main () {
 		strncpy(cmd, "cd ", LEN);
 		cmdLen = strlen(cmd);
 		if (!strncmp(input, cmd, cmdLen)) {
-			size_t pathLen = strcspn(input + cmdLen, "\n");
-			char* path = strndup(input + cmdLen, pathLen);
-			if (!path) {
-				perror("malloc failed: in function main");
-				exit(1);
-			}
-			if (chdir(path)) printf("cd: %s: No such file or directory\n", path);
-			free(path);
+			cd(input, cmdLen);
 			continue;
 		}
 		cmdLen = strspn(input, validChars);
@@ -132,7 +136,6 @@ int main () {
 		char* prog = which(cmd);
 		if (!prog) {
 			printf("%s: command not found\n", cmd);
-			free(prog);
 			continue;
 		}
 		execute(input, prog);
