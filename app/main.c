@@ -76,9 +76,7 @@ static void cd (const char* input, size_t cmdLen) {
 static void execute (char* input, const char* prog) {
 	char* argv[LEN];
 	int i = 0;
-	for (char* t; (t = strsep(&input, " \n")) && i < LEN; i++) {
-		argv[i] = t;
-	}
+	for (char* t; (t = strsep(&input, " \n")) && i < LEN; i++) argv[i] = t;
 	if (i) argv[i - 1] = (char*)0;
 	pid_t child = fork();
 	waitpid(child, NULL, 0);
