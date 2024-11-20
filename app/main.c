@@ -21,7 +21,7 @@ static char* which (const char* cmd) {
 		perror("malloc failed: in function which");
 		exit(1);
 	}
-	for (char* tok = (char*)1; (tok = strsep(&path, ":"));) {
+	for (char* tok; (tok = strsep(&path, ":"));) {
 		DIR* pathDir = opendir(tok);
 		if (!pathDir) continue;
 		for (struct dirent* t; (t = readdir(pathDir));) {
@@ -76,11 +76,10 @@ static void cd (const char* input, size_t cmdLen) {
 static void execute (char* input, const char* prog) {
 	char* argv[LEN];
 	int i = 0;
-	for (char* t = (char*)1; t && i < LEN; i++) {
-		t = strsep((char**)&input, " \n");
+	for (char* t; (t = strsep(&input, " \n")) && i < LEN; i++) {
 		argv[i] = t;
 	}
-	if (i > 1) argv[i - 2] = (char*)0;
+	if (i) argv[i - 1] = (char*)0;
 	pid_t child = fork();
 	waitpid(child, NULL, 0);
 	if (!child) execve(prog, argv, (char**)0);
@@ -100,7 +99,10 @@ int main () {
 			int ret = atoi(input + cmdLen);
 			return ret;
 		}
-		if (!strcmp(input, "echo\n")) continue;
+		if (!strcmp(input, "echo\n")) {
+			printf("\n");
+			continue;
+		}
 		strncpy(cmd, "echo ", LEN);
 		cmdLen = strlen(cmd);
 		if (!strncmp(input, cmd, cmdLen)) {
