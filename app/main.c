@@ -78,7 +78,7 @@ static void cd (const char* input, size_t cmdLen) {
 			perror("malloc failed: in function cd");
 			exit(1);
 		}
-		snprintf(homePath, homePathLen, "%s%s", home, path + strcspn("~"));
+		snprintf(homePath, homePathLen, "%s%s", home, path + strcspn(path, "~"));
 		if(chdir(homePath)) printf("cd: %s: No such file or directory\n", path);
 		free(homePath);
 		free(path);
