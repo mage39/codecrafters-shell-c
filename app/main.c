@@ -63,7 +63,7 @@ static void type (const char* input, char* cmd, size_t cmdLen) {
 }
 
 static void cd (const char* input, size_t cmdLen) {
-	size_t start = strspn(input + cmdLen, " \t");
+	size_t start = strspn(input + cmdLen, " ");
 	size_t end = strcspn(input + cmdLen, "\n");
 	char* path = strndup(input + start, end - start);
 	if (!path) {
