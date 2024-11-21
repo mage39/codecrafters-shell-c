@@ -63,11 +63,22 @@ static void type (const char* input, char* cmd, size_t cmdLen) {
 }
 
 static void cd (const char* input, size_t cmdLen) {
-	size_t pathLen = strcspn(input + cmdLen, "\n");
-	char* path = strndup(input + cmdLen, pathLen);
+	size_t start = strspn(input + cmdLen, " \t");
+	size_t end = strcspn(input + cmdLen, "\n");
+	char* path = strndup(input + start, end - start);
 	if (!path) {
 		perror("malloc failed: in function main");
 		exit(1);
+	}
+	if (strchr(path, "~")) {
+		char* home = getenv("HOME");
+		size_t homePathLen = strlen(path) + strlen(home) + 1;
+		char* homePath = malloc(homePathLen);
+		snprintf(homePath, homePathLen, "%s/%s", home, path);
+		if(chdir(homePath)) printf("cd: %s: No such file or directory\n", path);
+		free(homePath);
+		free(path);
+		return;
 	}
 	if (chdir(path)) printf("cd: %s: No such file or directory\n", path);
 	free(path);
@@ -120,7 +131,7 @@ int main () {
 			printf("%s\n", pwd);
 			continue;
 		}
-		if (!strcmp(input, "cd\n") || !strcmp(input, "cd ~\n")) {
+		if (!strcmp(input, "cd\n")) {
 			chdir(getenv("HOME"));
 			continue;
 		}
