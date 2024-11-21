@@ -74,7 +74,7 @@ static void cd (const char* input, size_t cmdLen) {
 		char* home = getenv("HOME");
 		size_t homePathLen = strlen(path) + strlen(home) + 1;
 		char* homePath = malloc(homePathLen);
-		if (!homePath)
+		if (!homePath) {
 			perror("malloc failed: in function main");
 			exit(1);
 		}
