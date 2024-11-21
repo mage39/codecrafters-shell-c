@@ -67,7 +67,7 @@ static void cd (const char* input, size_t cmdLen) {
 	size_t end = strcspn(input + cmdLen, "\n");
 	char* path = strndup(input + cmdLen + start, end - start);
 	if (!path) {
-		perror("malloc failed: in function main");
+		perror("malloc failed: in function cd");
 		exit(1);
 	}
 	if (strchr(path, '~')) {
@@ -75,7 +75,7 @@ static void cd (const char* input, size_t cmdLen) {
 		size_t homePathLen = strlen(path) + strlen(home) + 1;
 		char* homePath = malloc(homePathLen);
 		if (!homePath) {
-			perror("malloc failed: in function main");
+			perror("malloc failed: in function cd");
 			exit(1);
 		}
 		snprintf(homePath, homePathLen, "%s/%s", home, path);
