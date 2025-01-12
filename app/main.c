@@ -15,7 +15,8 @@ static const char* validChars = "abcdefghijklmnopqrstuvwxyz"
 
 static char* which (const char* cmd) {
 	const char* pathEnv = getenv("PATH");
-	char* freePath = strdup(pathEnv), *path = freePath;
+	char* path = alloca(strlen(pathEnv) + 1);
+	strcpy(path, pathEnv);
 	char* ret = malloc(LEN);
 	if (!ret) {
 		perror("malloc failed: in function which");
@@ -28,13 +29,11 @@ static char* which (const char* cmd) {
 			if (!strcmp(t->d_name, cmd)) {
 				closedir(pathDir);
 				snprintf(ret, LEN, "%s/%s", tok, cmd);
-				free(freePath);
 				return ret;
 			}
 		}
 		closedir(pathDir);
 	}
-	free(freePath);
 	free(ret);
 	return 0;
 }
@@ -71,16 +70,15 @@ static void cd (const char* input, size_t cmdLen) {
 		exit(1);
 	}
 	if (strchr(path, '~')) {
-		char* home = getenv("HOME");
+		const char* home = getenv("HOME");
 		size_t homePathLen = strlen(path) + strlen(home) + 1;
-		char* homePath = malloc(homePathLen);
+		char* homePath = alloca(homePathLen);
 		if (!homePath) {
 			perror("malloc failed: in function cd");
 			exit(1);
 		}
 		snprintf(homePath, homePathLen, "%s/%s", home, path + strcspn(path, "~"));
 		if(chdir(homePath)) printf("cd: %s: No such file or directory\n", path);
-		free(homePath);
 		free(path);
 		return;
 	}
